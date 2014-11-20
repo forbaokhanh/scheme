@@ -26,8 +26,24 @@
 ; Problem 18
 ;; Turns a list of pairs into a pair of lists
 (define (zip pairs)
-  'YOUR-CODE-HERE
+
+  (define (append x lst)
+    (cond
+      ((null? lst) (cons x nil))
+      (else (cons (car lst) (append x (cdr lst))))
+    )
   )
+
+  (define (zip-helper pairs curr)
+    (if (eq? nil pairs)
+      curr
+      (zip-helper (cdr pairs)
+        (cons 
+          (append (caar pairs) (car curr)) 
+          (cons (append (cadar pairs) (cadr curr)) nil)))))
+  
+  (zip-helper pairs '(() ()))
+)
 
 (zip '())
 ; expect (() ())
@@ -41,8 +57,19 @@
 ;; A list of all ways to partition TOTAL, where  each partition must
 ;; be at most MAX-VALUE and there are at most MAX-PIECES partitions.
 (define (list-partitions total max-pieces max-value)
-  'YOUR-CODE-HERE
-  )
+  (define pred (lambda (x) (<= (length x) max-pieces)))
+  (define (part-helper n m)
+    (cond
+      ((> 0 n) '())
+      ((zero? m) '())
+      ((zero? n) '((0)))
+      (else 
+          (define yes (part-helper (- n m) m))
+          (define no (part-helper n (- m 1)))
+          (define (add-m s) (if (eq? s '(0)) (cons m nil) (cons m s)))
+          (define yes (keep-if pred (apply-to-all add-m yes)))
+          (append yes no))))
+  (if (zero? total) '((0)) (part-helper total max-value)))
 
 (list-partitions 5 2 4)
 ; expects a permutation of ((4 1) (3 2))
@@ -64,25 +91,28 @@
 ;; Converts all let special forms in EXPR into equivalent forms using lambda
 (define (analyze expr)
   (cond ((atom? expr)
-         'YOUR-CODE-HERE
+         expr
          )
         ((quoted? expr)
-         'YOUR-CODE-HERE
+         expr
          )
         ((or (lambda? expr)
              (define? expr))
          (let ((form   (car expr))
                (params (cadr expr))
                (body   (cddr expr)))
-           'YOUR-CODE-HERE
+            (define body (apply-to-all analyze body))
+               (cons form (cons params body))
            ))
         ((let? expr)
          (let ((values (cadr expr))
                (body   (cddr expr)))
-           'YOUR-CODE-HERE
+           (define params (car (zip values)))
+              (define formals (cadr (zip values)))
+              (analyze (cons (cons 'lambda (cons params body)) formals))
            ))
         (else
-         'YOUR-CODE-HERE
+         expr
          )))
 
 (analyze 1)
